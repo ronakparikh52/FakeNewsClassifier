@@ -1,0 +1,64 @@
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Packaging / build
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+
+# Test / coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Logs / temp
+*.log
+*.tmp
+*.temp
+
+# Tooling caches
+.mypy_cache/
+.pyre/
+.pytype/
+.pylint.d/
+
+# Results & generated artifacts
+logistic_regression/results/
+random_forest/results/
+
+# SHAP/LIME or other interpretation outputs (already under results but in case of relocation)
+shap_top_words*.txt
+shap_top_words*.jpg
+lime_explanation_*.html
+lime_explanation_*.txt
+
+# Data files (large datasets should not be committed)
+WELFake_Dataset.csv
+
+# Misc
+*.swp
+*.swo
