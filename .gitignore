@@ -46,9 +46,6 @@ htmlcov/
 .pytype/
 .pylint.d/
 
-# Results & generated artifacts
-logistic_regression/results/
-random_forest/results/
 
 # SHAP/LIME or other interpretation outputs (already under results but in case of relocation)
 shap_top_words*.txt

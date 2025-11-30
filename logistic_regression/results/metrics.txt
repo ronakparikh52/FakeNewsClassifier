@@ -1,0 +1,24 @@
+=== Best Search Type ===
+Grid
+
+=== Performance (F1/Time) ===
+Grid: F1=0.9428, Time=120.62s
+Random: F1=0.9413, Time=70.14s
+
+=== Best Parameters ===
+clf__C: 0.5
+clf__penalty: l1
+clf__solver: liblinear
+tfidf__ngram_range: (1, 1)
+
+=== Best Model Metrics (Binary Classification) ===
+accuracy: 0.9407
+precision: 0.9352
+recall: 0.9505
+f1: 0.9428
+roc_auc: 0.9826
+auprc: 0.9840
+
+Confusion Matrix:
+	6517 489
+	367 7054

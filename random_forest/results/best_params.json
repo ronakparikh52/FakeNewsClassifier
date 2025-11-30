@@ -1,0 +1,12 @@
+{
+  "best_search": "Grid",
+  "best_params": {
+    "clf__max_depth": 20,
+    "clf__max_features": "sqrt",
+    "clf__n_estimators": 200,
+    "tfidf__ngram_range": [
+      1,
+      1
+    ]
+  }
+}
