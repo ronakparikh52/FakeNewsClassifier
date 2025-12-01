@@ -197,7 +197,7 @@ def explain_shap_tree_text(pipeline: Pipeline, X_train_text, out_dir, max_backgr
     import shap
     os.makedirs(out_dir, exist_ok=True)
     tfidf = pipeline.named_steps["tfidf"]
-    clf = pipeline.named_steps.get("clf") or pipeline.named_steps.get("rf")
+    clf = pipeline.named_steps["clf"]
     # Background sample
     if len(X_train_text) > max_background:
         bg_idx = random.sample(range(len(X_train_text)), max_background)
@@ -206,13 +206,10 @@ def explain_shap_tree_text(pipeline: Pipeline, X_train_text, out_dir, max_backgr
         X_bg_text = list(X_train_text)
     X_bg = tfidf.transform(X_bg_text)
     # Dense array for TreeExplainer
-    if hasattr(X_bg, "toarray"):
-        X_bg_dense = X_bg.toarray()
-    else:
-        X_bg_dense = X_bg
-    explainer = shap.TreeExplainer(clf)
-    shap_values = explainer.shap_values(X_bg_dense)
-    # Binary: shap_values is list [class0, class1]; use positive class
+    X_bg_dense = X_bg.toarray() if hasattr(X_bg, "toarray") else X_bg
+    explainer = shap.TreeExplainer(clf, feature_perturbation="interventional", model_output="probability")
+    shap_values = explainer.shap_values(X_bg_dense, check_additivity=False)
+    # Binary: use positive class values if list
     if isinstance(shap_values, list) and len(shap_values) == 2:
         sv = np.abs(shap_values[1])
     else:

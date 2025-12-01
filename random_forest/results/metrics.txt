@@ -1,24 +1,25 @@
 === Best Search Type ===
-Grid
+Random
 
 === Performance (F1/Time) ===
-Grid: F1=0.8972, Time=188.56s
-Random: F1=0.8288, Time=74.71s
+Grid: F1=0.9397, Time=1639.91s
+Random: F1=0.9414, Time=780.77s
 
 === Best Parameters ===
-clf__max_depth: 20
-clf__max_features: sqrt
-clf__n_estimators: 200
 tfidf__ngram_range: (1, 1)
+clf__n_estimators: 200
+clf__min_samples_split: 2
+clf__max_features: sqrt
+clf__max_depth: None
 
 === Best Model Metrics (Binary Classification) ===
-accuracy: 0.8919
-precision: 0.8787
-recall: 0.9165
-f1: 0.8972
-roc_auc: 0.9618
-auprc: 0.9654
+accuracy: 0.9393
+precision: 0.9354
+recall: 0.9476
+f1: 0.9414
+roc_auc: 0.9884
+auprc: 0.9895
 
 Confusion Matrix:
-	6067 939
-	620 6801
+	6520 486
+	389 7032

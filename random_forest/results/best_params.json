@@ -1,12 +1,13 @@
 {
-  "best_search": "Grid",
+  "best_search": "Random",
   "best_params": {
-    "clf__max_depth": 20,
-    "clf__max_features": "sqrt",
-    "clf__n_estimators": 200,
     "tfidf__ngram_range": [
       1,
       1
-    ]
+    ],
+    "clf__n_estimators": 200,
+    "clf__min_samples_split": 2,
+    "clf__max_features": "sqrt",
+    "clf__max_depth": null
   }
 }

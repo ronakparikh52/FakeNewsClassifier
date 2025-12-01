@@ -33,14 +33,14 @@ def preprocess_data(X_train, X_test):
 
 
 def get_parameter_grid():
-    """Return the hyperparameter grid explored for TF-IDF + LR tuning.
-    Grid spans n-grams, regularization strength, solver choice, and penalty type."""
     return {
-        "tfidf__ngram_range": [(1, 1), (1, 2)],
-        "clf__C": [0.5, 1.0, 2.0],
-        "clf__solver": ["liblinear", "saga"],
-        "clf__penalty": ["l1", "l2"],
+        "tfidf__ngram_range": [(1,1), (1,2)],
+        "clf__C": [0.25, 0.5, 1.0, 2.0],
+        "clf__solver": ["liblinear"],
+        "clf__penalty": ["l2"],
+        "clf__max_iter": [3000]
     }
+
 
 def main():
     """Run searches, pick best by AUC, save artifacts and interpretability outputs.
@@ -112,7 +112,7 @@ def main():
 
     # SHAP global top words and LIME local explanations
     try:
-        shap_plot, shap_txt = explain_shap_linear_text(best_pipe, X_train, RESULTS_DIR)
+        shap_plot, shap_txt = explain_shap_linear_text(best_pipe, X_train, RESULTS_DIR, max_background=300, top_k=20)
         print("SHAP outputs:", shap_plot, shap_txt)
     except Exception as e:
         print("SHAP explanation failed:", e)

@@ -2,23 +2,24 @@
 Grid
 
 === Performance (F1/Time) ===
-Grid: F1=0.9428, Time=120.62s
-Random: F1=0.9413, Time=70.14s
+Grid: F1=0.9579, Time=1733.95s
+Random: F1=0.9496, Time=690.32s
 
 === Best Parameters ===
-clf__C: 0.5
-clf__penalty: l1
+clf__C: 2.0
+clf__max_iter: 3000
+clf__penalty: l2
 clf__solver: liblinear
-tfidf__ngram_range: (1, 1)
+tfidf__ngram_range: (1, 2)
 
 === Best Model Metrics (Binary Classification) ===
-accuracy: 0.9407
-precision: 0.9352
-recall: 0.9505
-f1: 0.9428
-roc_auc: 0.9826
-auprc: 0.9840
+accuracy: 0.9567
+precision: 0.9572
+recall: 0.9586
+f1: 0.9579
+roc_auc: 0.9903
+auprc: 0.9906
 
 Confusion Matrix:
-	6517 489
-	367 7054
+	6688 318
+	307 7114

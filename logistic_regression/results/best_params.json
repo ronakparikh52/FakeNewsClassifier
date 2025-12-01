@@ -1,12 +1,13 @@
 {
   "best_search": "Grid",
   "best_params": {
-    "clf__C": 0.5,
-    "clf__penalty": "l1",
+    "clf__C": 2.0,
+    "clf__max_iter": 3000,
+    "clf__penalty": "l2",
     "clf__solver": "liblinear",
     "tfidf__ngram_range": [
       1,
-      1
+      2
     ]
   }
 }

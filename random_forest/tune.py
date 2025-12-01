@@ -33,13 +33,14 @@ def preprocess_data(X_train, X_test):
 
 
 def get_parameter_grid():
-    """Return hyperparameter grid for RandomForest + TF-IDF tuning."""
     return {
-        "tfidf__ngram_range": [(1, 1), (1, 2)],
-        "clf__n_estimators": [200, 400],
-        "clf__max_depth": [None, 10, 20],
-        "clf__max_features": ["sqrt", "log2"],
+        "tfidf__ngram_range": [(1,1)],
+        "clf__n_estimators": [100, 200],
+        "clf__max_depth": [None, 10],
+        "clf__max_features": ["sqrt"],
+        "clf__min_samples_split": [2, 5],
     }
+
 
 def main():
     """Run grid and random search optimizing F1, pick best, save artifacts in results folder."""
@@ -107,7 +108,7 @@ def main():
 
     # SHAP global top words for RandomForest
     try:
-        shap_plot, shap_txt = explain_shap_tree_text(best_pipe, X_train, RESULTS_DIR)
+        shap_plot, shap_txt = explain_shap_tree_text(best_pipe, X_train, RESULTS_DIR, max_background=300, top_k=20)
         print("SHAP RF outputs:", shap_plot, shap_txt)
     except Exception as e:
         print("SHAP RF explanation failed:", e)
