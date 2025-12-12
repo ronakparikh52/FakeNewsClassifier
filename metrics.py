@@ -144,6 +144,7 @@ def write_metrics_file(metrics, cv_summary=None, best_params=None, out_path="met
 
 def explain_shap_linear_text(pipeline: Pipeline, X_train_text, out_dir, max_background=2000, top_k=20):
     """Compute SHAP global importance for a linear text model and save top-k terms as bar plot and TXT.
+    Shows directional importance: words pushing toward FAKE vs REAL.
     Uses a sample of training documents as background for faster computation."""
     import shap
     os.makedirs(out_dir, exist_ok=True)
@@ -160,79 +161,75 @@ def explain_shap_linear_text(pipeline: Pipeline, X_train_text, out_dir, max_back
     # Explain same background (good enough for global importance)
     shap_values = explainer.shap_values(X_bg)
     # For binary classifier, shap_values is (n_samples, n_features)
-    sv = np.abs(shap_values)
+    sv = shap_values
     # If sparse-like, densify
     if hasattr(sv, "toarray"):
         sv = sv.toarray()
-    mean_abs = np.array(sv).mean(axis=0)
-    # If numpy matrix, flatten
-    if hasattr(mean_abs, "A1"):
-        mean_abs = mean_abs.A1
+    sv = np.array(sv)
+    # If numpy matrix, convert
+    if hasattr(sv, "A"):
+        sv = np.asarray(sv)
+    
     # Map indices to feature names
     feat_names = tfidf.get_feature_names_out()
-    top_idx = np.argsort(mean_abs)[-top_k:][::-1]
-    top_scores = mean_abs[top_idx]
-    top_feats = feat_names[top_idx]
-    # Save bar plot
-    plt.figure(figsize=(8, 6))
-    plt.barh(range(len(top_feats))[::-1], top_scores[::-1], color="#3b82f6")
-    plt.yticks(range(len(top_feats))[::-1], top_feats[::-1])
-    plt.xlabel("Mean |SHAP| (importance)")
-    plt.title("Top Features by SHAP (LogReg TF-IDF)")
+    
+    # Separate positive (→ FAKE) and negative (→ REAL) contributions
+    # Positive SHAP values push toward class 1 (FAKE)
+    fake_mean = np.maximum(sv, 0).mean(axis=0)
+    real_mean = np.abs(np.minimum(sv, 0)).mean(axis=0)
+    
+    # Flatten if needed
+    if hasattr(fake_mean, "A1"):
+        fake_mean = fake_mean.A1
+    if hasattr(real_mean, "A1"):
+        real_mean = real_mean.A1
+    fake_mean = np.asarray(fake_mean).flatten()
+    real_mean = np.asarray(real_mean).flatten()
+    
+    # Get top-k for each direction
+    top_fake_idx = np.argsort(fake_mean)[-top_k:][::-1]
+    top_real_idx = np.argsort(real_mean)[-top_k:][::-1]
+    
+    top_fake_scores = fake_mean[top_fake_idx]
+    top_fake_feats = feat_names[top_fake_idx]
+    top_real_scores = real_mean[top_real_idx]
+    top_real_feats = feat_names[top_real_idx]
+    
+    # Save directional bar plot (two panels)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 8))
+    
+    # FAKE panel
+    ax1.barh(range(len(top_fake_feats))[::-1], top_fake_scores[::-1], color="#ef4444")
+    ax1.set_yticks(range(len(top_fake_feats))[::-1])
+    ax1.set_yticklabels(top_fake_feats[::-1])
+    ax1.set_xlabel("Mean SHAP (importance)")
+    ax1.set_title("Top Words → FAKE")
+    
+    # REAL panel
+    ax2.barh(range(len(top_real_feats))[::-1], top_real_scores[::-1], color="#22c55e")
+    ax2.set_yticks(range(len(top_real_feats))[::-1])
+    ax2.set_yticklabels(top_real_feats[::-1])
+    ax2.set_xlabel("Mean SHAP (importance)")
+    ax2.set_title("Top Words → REAL")
+    
+    plt.suptitle("Top Features by SHAP (LogReg TF-IDF)", fontsize=14)
     plt.tight_layout()
     shap_plot_path = os.path.join(out_dir, "shap_top_words.jpg")
     plt.savefig(shap_plot_path, format="jpg", dpi=200)
     plt.close()
-    # Save TXT
+    
+    # Save TXT with both directions
     shap_txt_path = os.path.join(out_dir, "shap_top_words.txt")
     with open(shap_txt_path, "w") as f:
-        for feat, score in zip(top_feats, top_scores):
-            f.write(f"{feat}\t{score:.6f}\n")
-    return shap_plot_path, shap_txt_path
-
-
-def explain_shap_tree_text(pipeline: Pipeline, X_train_text, out_dir, max_background=2000, top_k=20):
-    """Compute SHAP global importance for a tree-based text model and save top-k terms.
-    Uses TreeExplainer on RandomForest; background texts are vectorized via TF-IDF."""
-    import shap
-    os.makedirs(out_dir, exist_ok=True)
-    tfidf = pipeline.named_steps["tfidf"]
-    clf = pipeline.named_steps["clf"]
-    # Background sample
-    if len(X_train_text) > max_background:
-        bg_idx = random.sample(range(len(X_train_text)), max_background)
-        X_bg_text = [X_train_text[i] for i in bg_idx]
-    else:
-        X_bg_text = list(X_train_text)
-    X_bg = tfidf.transform(X_bg_text)
-    # Dense array for TreeExplainer
-    X_bg_dense = X_bg.toarray() if hasattr(X_bg, "toarray") else X_bg
-    explainer = shap.TreeExplainer(clf, feature_perturbation="interventional", model_output="probability")
-    shap_values = explainer.shap_values(X_bg_dense, check_additivity=False)
-    # Binary: use positive class values if list
-    if isinstance(shap_values, list) and len(shap_values) == 2:
-        sv = np.abs(shap_values[1])
-    else:
-        sv = np.abs(shap_values)
-    mean_abs = np.array(sv).mean(axis=0)
-    feat_names = tfidf.get_feature_names_out()
-    top_idx = np.argsort(mean_abs)[-top_k:][::-1]
-    top_scores = mean_abs[top_idx]
-    top_feats = feat_names[top_idx]
-    # Save bar plot
-    plt.figure(figsize=(8, 6))
-    plt.barh(range(len(top_feats))[::-1], top_scores[::-1], color="#f59e0b")
-    plt.yticks(range(len(top_feats))[::-1], top_feats[::-1])
-    plt.xlabel("Mean |SHAP| (importance)")
-    plt.title("Top Features by SHAP (RandomForest TF-IDF)")
-    plt.tight_layout()
-    shap_plot_path = os.path.join(out_dir, "shap_top_words_rf.jpg")
-    plt.savefig(shap_plot_path, format="jpg", dpi=200)
-    plt.close()
-    shap_txt_path = os.path.join(out_dir, "shap_top_words_rf.txt")
-    with open(shap_txt_path, "w") as f:
-        for feat, score in zip(top_feats, top_scores):
-            f.write(f"{feat}\t{score:.6f}\n")
+        f.write("=== Logistic Regression Top Words (SHAP) ===\n\n")
+        f.write("Top Words Pushing Toward FAKE:\n")
+        f.write("-" * 40 + "\n")
+        for i, (feat, score) in enumerate(zip(top_fake_feats, top_fake_scores), 1):
+            f.write(f"{i:2}. {feat:<20} {score:.6f}\n")
+        f.write("\n\nTop Words Pushing Toward REAL:\n")
+        f.write("-" * 40 + "\n")
+        for i, (feat, score) in enumerate(zip(top_real_feats, top_real_scores), 1):
+            f.write(f"{i:2}. {feat:<20} {score:.6f}\n")
     return shap_plot_path, shap_txt_path
 
 
@@ -249,7 +246,6 @@ __all__ = [
     "save_roc_curve",
     "write_metrics_file",
     "explain_shap_linear_text",
-    "explain_shap_tree_text",
 ]
 
 # Global top words via coefficients removed; prefer SHAP global importance.

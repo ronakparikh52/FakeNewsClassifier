@@ -65,29 +65,60 @@ def main():
     # Reduce any trailing dims beyond (samples, features)
     while hasattr(sv, 'ndim') and sv.ndim > 2:
         sv = sv.mean(axis=-1)
-    sv = np.abs(sv)
-    mean_abs = np.array(sv).mean(axis=0)
+    
+    sv = np.array(sv)
     feat_names = tfidf.get_feature_names_out()
     top_k = 20
-    top_idx = np.argsort(mean_abs)[-top_k:][::-1]
-    top_scores = mean_abs[top_idx]
-    top_feats = feat_names[top_idx]
-    # Save bar plot
+    
+    # Separate positive (→ FAKE) and negative (→ REAL) contributions
+    fake_mean = np.maximum(sv, 0).mean(axis=0)
+    real_mean = np.abs(np.minimum(sv, 0)).mean(axis=0)
+    
+    # Get top-k for each direction
+    top_fake_idx = np.argsort(fake_mean)[-top_k:][::-1]
+    top_real_idx = np.argsort(real_mean)[-top_k:][::-1]
+    
+    top_fake_scores = fake_mean[top_fake_idx]
+    top_fake_feats = feat_names[top_fake_idx]
+    top_real_scores = real_mean[top_real_idx]
+    top_real_feats = feat_names[top_real_idx]
+    
+    # Save directional bar plot (two panels)
     import matplotlib.pyplot as plt
-    plt.figure(figsize=(8, 6))
-    plt.barh(range(len(top_feats))[::-1], top_scores[::-1], color="#f59e0b")
-    plt.yticks(range(len(top_feats))[::-1], top_feats[::-1])
-    plt.xlabel("Mean |SHAP| (importance)")
-    plt.title("Top Features by SHAP (RandomForest TF-IDF)")
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 8))
+    
+    # FAKE panel
+    ax1.barh(range(len(top_fake_feats))[::-1], top_fake_scores[::-1], color="#ef4444")
+    ax1.set_yticks(range(len(top_fake_feats))[::-1])
+    ax1.set_yticklabels(top_fake_feats[::-1])
+    ax1.set_xlabel("Mean SHAP (importance)")
+    ax1.set_title("Top Words → FAKE")
+    
+    # REAL panel
+    ax2.barh(range(len(top_real_feats))[::-1], top_real_scores[::-1], color="#22c55e")
+    ax2.set_yticks(range(len(top_real_feats))[::-1])
+    ax2.set_yticklabels(top_real_feats[::-1])
+    ax2.set_xlabel("Mean SHAP (importance)")
+    ax2.set_title("Top Words → REAL")
+    
+    plt.suptitle("Top Features by SHAP (RandomForest TF-IDF)", fontsize=14)
     plt.tight_layout()
-    shap_plot_path = os.path.join(RESULTS_DIR, "shap_top_words_rf.jpg")
+    shap_plot_path = os.path.join(RESULTS_DIR, "shap_top_words.jpg")
     plt.savefig(shap_plot_path, format="jpg", dpi=200)
     plt.close()
-    # Save TXT
-    shap_txt_path = os.path.join(RESULTS_DIR, "shap_top_words_rf.txt")
+    
+    # Save TXT with both directions
+    shap_txt_path = os.path.join(RESULTS_DIR, "shap_top_words.txt")
     with open(shap_txt_path, "w") as f:
-        for feat, score in zip(top_feats, top_scores):
-            f.write(f"{feat}\t{score:.6f}\n")
+        f.write("=== Random Forest Top Words (SHAP) ===\n\n")
+        f.write("Top Words Pushing Toward FAKE:\n")
+        f.write("-" * 40 + "\n")
+        for i, (feat, score) in enumerate(zip(top_fake_feats, top_fake_scores), 1):
+            f.write(f"{i:2}. {feat:<20} {score:.6f}\n")
+        f.write("\n\nTop Words Pushing Toward REAL:\n")
+        f.write("-" * 40 + "\n")
+        for i, (feat, score) in enumerate(zip(top_real_feats, top_real_scores), 1):
+            f.write(f"{i:2}. {feat:<20} {score:.6f}\n")
     print("Saved:", shap_plot_path, shap_txt_path)
 
 

@@ -1,0 +1,24 @@
+=== BERT Fine-Tuned Model ===
+
+Training Time: 13939.65s
+Epochs: 3
+Batch Size: 16
+Learning Rate: 2e-05
+Max Length: 256
+
+=== Test Set Metrics ===
+accuracy: 0.9942
+precision: 0.9953
+recall: 0.9933
+f1: 0.9943
+f2: 0.9937
+pr_auc: 0.9999
+
+Confusion Matrix:
+	5270 26
+	37 5488
+
+=== Training History ===
+Epoch 1: loss=0.0840, val_pr_auc=0.9997, val_f2=0.9954
+Epoch 2: loss=0.0156, val_pr_auc=0.9997, val_f2=0.9931
+Epoch 3: loss=0.0020, val_pr_auc=0.9999, val_f2=0.9947

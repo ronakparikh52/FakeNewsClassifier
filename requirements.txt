@@ -29,3 +29,5 @@ tifffile==2025.5.10
 tqdm==4.67.1
 typing_extensions==4.15.0
 tzdata==2025.2
+torch>=2.0.0
+transformers>=4.30.0

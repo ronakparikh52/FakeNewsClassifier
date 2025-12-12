@@ -108,7 +108,7 @@ def main():
 
     # SHAP global top words for RandomForest
     try:
-        shap_plot, shap_txt = explain_shap_tree_text(best_pipe, X_train, RESULTS_DIR, max_background=300, top_k=20)
+        shap_plot, shap_txt = explain_shap_tree_text(best_pipe, X_train, RESULTS_DIR)
         print("SHAP RF outputs:", shap_plot, shap_txt)
     except Exception as e:
         print("SHAP RF explanation failed:", e)
